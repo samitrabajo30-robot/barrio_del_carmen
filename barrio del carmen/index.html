@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#174d43">
+  <meta name="description" content="Información, comercios, novedades y participación vecinal del barrio Nuestra Señora del Carmen, Río Gallegos.">
+  <title>Barrio Del Carmen · Río Gallegos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#contenido">Ir al contenido</a>
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="#inicio" aria-label="Barrio Del Carmen, inicio">
+        <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M6 23 24 8l18 15v18H6z"/><path d="M18 41V27h12v14M4 23 24 6l20 17"/></svg></span>
+        <span class="brand-copy"><strong>Barrio Del Carmen</strong><small>Junta Vecinal · Río Gallegos</small></span>
+      </a>
+      <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="main-nav"><span></span><span></span><span></span><span class="sr-only">Abrir menú</span></button>
+      <nav id="main-nav" class="main-nav" aria-label="Navegación principal">
+        <a href="#comercios">Comercios</a><a href="#lugares">Lugares</a><a href="#novedades">Novedades</a><a href="#participacion">Participación</a>
+      </nav>
+      <a class="header-contact" href="#contacto">Contactar <span aria-hidden="true">↗</span></a>
+    </div>
+  </header>
+
+  <main id="contenido">
+    <section class="hero" id="inicio">
+      <div class="hero-texture" aria-hidden="true"></div>
+      <div class="hero-inner">
+        <div class="hero-copy">
+          <p class="eyebrow"><span class="eyebrow-dot"></span> Río Gallegos · Santa Cruz</p>
+          <h1>Barrio Nuestra<br>Señora del <em>Carmen.</em></h1>
+          <p class="hero-lead">Un espacio para los vecinos.</p>
+          <p class="hero-description">Lo que pasa en el barrio, cerca de todos. Encontrá servicios, enterate de las novedades y hagamos comunidad.</p>
+          <a class="button button-light" href="#comercios">Explorar el barrio <span aria-hidden="true">↓</span></a>
+          <div class="hero-note"><span class="note-line"></span><span>Un barrio que se encuentra, crece y se cuida.</span></div>
+        </div>
+        <div class="hero-art" id="hero-art" aria-label="Ilustración de casas del barrio y un árbol">
+          <img id="hero-photo" class="uploaded-hero-image" alt="Imagen del barrio Nuestra Señora del Carmen" hidden>
+          <div class="sun"></div><div class="cloud cloud-one"></div><div class="cloud cloud-two"></div>
+          <div class="hill hill-back"></div><div class="hill hill-front"></div>
+          <div class="tree"><i></i><i></i><i></i><b></b></div>
+          <div class="house house-one"><div class="roof"></div><div class="walls"><span class="window"></span><span class="door"></span><span class="window"></span></div></div>
+          <div class="house house-two"><div class="roof"></div><div class="walls"><span class="window"></span><span class="door"></span></div></div>
+          <div class="house house-three"><div class="roof"></div><div class="walls"><span class="window"></span><span class="window"></span></div></div>
+          <div class="path"></div><div class="art-label"><span class="label-star">✳</span><span>Hecho entre<br>todos, para todos</span></div>
+          <span class="hero-art-caption">Una ilustración del barrio.<br>Pronto, una foto de nuestra comunidad.</span>
+        </div>
+      </div>
+      <div class="hero-bottom"><span>01 — Comunidad</span><span>Deslizá para conocer <b>⌄</b></span></div>
+    </section>
+
+    <section class="welcome section-wrap">
+      <div class="section-kicker"><span>01</span><i></i> NUESTRA COMUNIDAD</div>
+      <div class="welcome-grid"><h2>Un lugar para<br>estar <em>cerca.</em></h2><div class="welcome-copy"><p id="site-intro">Este es un punto de encuentro para quienes viven y trabajan en el barrio. Queremos compartir información útil, celebrar lo que hacemos juntos y encontrar soluciones entre todos.</p><p class="muted" id="site-history">La historia de Nuestra Señora del Carmen se sumará próximamente con el aporte de sus vecinos.</p><p id="site-extra" class="muted" hidden></p><a class="text-link" href="#participacion">Conocé los espacios vecinales <span>↗</span></a></div></div>
+      <div class="welcome-stats"><div><strong>Un barrio</strong><span>Muchas historias</span></div><div><strong>Una comunidad</strong><span>Que se acompaña</span></div><div><strong>Un lugar</strong><span>Para encontrarnos</span></div></div>
+    </section>
+
+    <section class="directory section-wrap" id="comercios">
+      <div class="section-heading"><div><div class="section-kicker"><span>02</span><i></i> CERCA TUYO</div><h2>Comercios y <em>servicios.</em></h2></div><p>Encontrá opciones del barrio y apoyá a quienes lo hacen crecer todos los días.</p></div>
+      <div class="search-panel"><label class="search-box"><span class="search-icon" aria-hidden="true">⌕</span><input id="business-search" type="search" placeholder="¿Qué estás buscando?" aria-label="Buscar comercios por nombre o rubro"><kbd>⌘ K</kbd></label><div class="category-tabs" role="group" aria-label="Filtrar comercios por categoría"><button class="category-chip active" data-category="Todos">Todos <span>0</span></button><button class="category-chip" data-category="Gastronomía">Gastronomía</button><button class="category-chip" data-category="Salud">Salud</button><button class="category-chip" data-category="Almacenes">Almacenes</button><button class="category-chip" data-category="Otros servicios">Otros servicios</button></div></div>
+      <div class="directory-grid" id="business-list" aria-live="polite"></div>
+      <div class="directory-footer"><span>¿Tenés un comercio en el barrio?</span><a class="text-link" href="#contacto">Contactá a la Junta Vecinal <span>↗</span></a></div>
+    </section>
+
+    <section class="places section-wrap" id="lugares">
+      <div class="section-heading"><div><div class="section-kicker"><span>03</span><i></i> PUNTOS DE ENCUENTRO</div><h2>Espacios para <em>compartir.</em></h2></div><p>Plazas y lugares importantes que forman parte de nuestra vida cotidiana.</p></div>
+      <div class="places-card"><div class="map-art" aria-label="Ilustración de mapa vecinal; ubicación pendiente de confirmar"><div class="map-grid"></div><svg viewBox="0 0 620 360" aria-hidden="true"><path class="road road-wide" d="M-20 286C122 257 189 317 295 249S443 193 654 211"/><path class="road" d="M82-24C144 79 113 150 181 224s46 115 53 174"/><path class="road" d="M441-30c-34 107-12 163 52 226s51 102 48 195"/><path class="road" d="M15 102c155-33 212 32 299 7s167-48 306-21"/><path class="green-space" d="M277 74c27-23 91-22 109 12s6 77-26 87-90 8-105-19-4-59 22-80z"/><path class="green-space" d="M371 258c31-24 77-16 81 19s-39 52-68 42-37-37-13-61z"/><circle class="map-pin" cx="331" cy="127" r="20"/><path class="pin-dot" d="M331 118a8 8 0 1 0 0 16 8 8 0 0 0 0-16"/><text x="353" y="132">PLAZA DEL BARRIO</text></svg><div class="map-caption"><span class="map-pulse"></span> Ubicación por confirmar</div></div><div class="places-info"><span class="tag">LUGARES DEL BARRIO</span><h3>Nuestros espacios,<br>nuestras historias.</h3><p>Muy pronto vas a encontrar acá plazas, espacios comunitarios y puntos de referencia del barrio.</p><a class="button button-dark" href="https://www.google.com/maps/search/?api=1&query=Barrio+Del+Carmen+R%C3%ADo+Gallegos" target="_blank" rel="noreferrer">Abrir Google Maps <span>↗</span></a><small>La ubicación de cada espacio se agregará cuando sea confirmada por la Junta Vecinal.</small></div></div>
+    </section>
+
+    <section class="news section-wrap" id="novedades">
+      <div class="section-heading"><div><div class="section-kicker"><span>04</span><i></i> LO QUE PASA</div><h2>Novedades del <em>barrio.</em></h2></div><p>Reuniones, actividades y noticias para estar al día y participar.</p></div>
+      <div class="news-empty"><div class="news-calendar"><span>PRÓXIMO</span><strong>—</strong><small>A CONFIRMAR</small></div><div><span class="tag">AGENDA VECINAL</span><h3>Estamos preparando el próximo encuentro.</h3><p>Las novedades y actividades oficiales se publicarán por este medio.</p></div><span class="news-spark" aria-hidden="true">✳</span></div>
+      <p class="content-note">Todavía no hay publicaciones. La Junta Vecinal podrá agregar novedades cuando esta página tenga un sistema de administración conectado.</p>
+    </section>
+
+    <section class="participation" id="participacion"><div class="participation-inner"><div class="section-kicker section-kicker-light"><span>05</span><i></i> NOS ESCUCHAMOS</div><h2>Tu voz también<br>hace <em>barrio.</em></h2><p>Entre vecinos podemos poner en común lo que pasa y lo que nos gustaría hacer.</p><div class="participation-cards"><article class="participation-card"><div class="card-icon complaint-icon" aria-hidden="true">!</div><span class="tag">AVISOS Y QUEJAS</span><h3>¿Hay algo que necesita atención?</h3><p>Alumbrado, calles, residuos o servicios: contanos qué pasa y en qué zona.</p><button class="button button-light open-form" data-form="complaint">Contar un problema <span>↗</span></button></article><article class="participation-card event-card"><div class="card-icon event-icon" aria-hidden="true">✳</div><span class="tag">EVENTOS VECINALES</span><h3>¿Estás organizando algo?</h3><p>Compartí una actividad, una invitación o una propuesta con tus vecinos.</p><button class="button button-outline open-form" data-form="event">Compartir un evento <span>↗</span></button></article></div><div class="privacy-note"><span aria-hidden="true">◉</span><p><strong>Sobre los mensajes:</strong> las quejas se envían a la Junta Vecinal para su seguimiento y no se publican en esta página. El formulario no solicita nombre ni teléfono. Los eventos siguen siendo una vista previa hasta activar esa función.</p></div></div></section>
+
+    <section class="contact section-wrap" id="contacto"><div class="contact-mark" aria-hidden="true">✳</div><div><div class="section-kicker"><span>06</span><i></i> JUNTOS, MÁS CERCA</div><h2>Hablemos del <em>barrio.</em></h2><p>La Junta Vecinal podrá sumar aquí sus canales oficiales de contacto.</p></div><span class="button button-dark contact-pending">Datos de contacto pendientes</span></section>
+  </main>
+
+  <footer class="site-footer"><div class="footer-main"><a class="brand brand-footer" href="#inicio"><span class="brand-mark"><svg viewBox="0 0 48 48"><path d="M6 23 24 8l18 15v18H6z"/><path d="M18 41V27h12v14M4 23 24 6l20 17"/></svg></span><span class="brand-copy"><strong>Barrio Del Carmen</strong><small>Junta Vecinal · Río Gallegos</small></span></a><p>Hecho para encontrarnos.<br>Hecho entre todos.</p><div class="footer-links"><a href="admin.html">Administración</a><a class="back-top" href="#inicio">Volver arriba ↑</a></div></div><div class="footer-bottom"><span>© 2026 Junta Vecinal Barrio Del Carmen</span><span>Río Gallegos · Santa Cruz · Argentina</span><span>Un espacio para los vecinos</span></div></footer>
+
+  <dialog id="participation-dialog" class="participation-dialog"><form method="dialog"><button class="dialog-close" aria-label="Cerrar">×</button></form><span class="tag" id="dialog-tag">PARTICIPACIÓN VECINAL</span><h2 id="dialog-title">Contanos</h2><p id="dialog-copy"></p><div class="dialog-demo-notice" id="dialog-notice"></div><form id="demo-form" class="demo-form"><div id="form-fields"></div><label class="honeypot" aria-hidden="true">Dejar vacío<input name="website" tabindex="-1" autocomplete="off"></label><button class="button button-dark" type="submit" id="dialog-submit">Enviar aviso <span>↗</span></button></form><div id="form-preview" class="form-preview" aria-live="polite"></div></dialog>
+</body>
+</html>

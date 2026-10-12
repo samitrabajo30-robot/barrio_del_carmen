@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow"><title>Administración · Barrio Del Carmen</title>
+  <link rel="stylesheet" href="admin.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="config.js"></script><script src="admin.js" defer></script>
+</head>
+<body>
+  <header class="admin-header"><a href="index.html" class="admin-brand"><span>✳</span><span><b>Barrio Del Carmen</b><small>Panel de administración</small></span></a><a href="index.html" class="back-link">← Ver página pública</a></header>
+  <main class="admin-main">
+    <section id="setup-notice" class="notice" hidden><b>Falta conectar el servicio de datos.</b><p>Completá los pasos de configuración en README.md. El panel no guarda cambios mientras falte esa conexión.</p></section>
+    <section id="login-panel" class="login-card"><span class="eyebrow">ACCESO PRIVADO</span><h1>Hola de nuevo.</h1><p>Ingresá con la cuenta autorizada de la Junta Vecinal.</p><form id="login-form"><label>Correo electrónico<input type="email" name="email" autocomplete="username" required></label><label>Contraseña<input type="password" name="password" autocomplete="current-password" required></label><button class="button" type="submit">Ingresar <span>↗</span></button><p id="login-error" class="error" aria-live="polite"></p></form></section>
+    <section id="dashboard" hidden>
+      <div class="welcome-row"><div><span class="eyebrow">JUNTA VECINAL · GESTIÓN</span><h1>Administración</h1><p>Actualizá la página y hacé seguimiento de los avisos vecinales.</p></div><button id="logout" class="quiet-button">Cerrar sesión</button></div>
+      <nav class="tabs" aria-label="Secciones de administración"><button class="tab active" data-panel="content-panel">Contenido de la página</button><button class="tab" data-panel="complaints-panel">Avisos y quejas</button></nav>
+      <section id="content-panel" class="panel"><div class="panel-heading"><div><span class="eyebrow">EDICIÓN BÁSICA</span><h2>Textos e imagen</h2><p>Los cambios se publican al guardarlos.</p></div></div><form id="content-form" class="content-form"><label>Texto de presentación<textarea name="intro" maxlength="900" rows="4" required></textarea><small>Hasta 900 caracteres.</small></label><label>Historia del barrio<textarea name="history" maxlength="1800" rows="5" placeholder="Sumá una breve historia o información de interés" required></textarea><small>Hasta 1.800 caracteres.</small></label><label>Texto adicional<textarea name="extra" maxlength="900" rows="3" placeholder="Opcional: agregá información o un aviso breve"></textarea><small>Opcional. Si lo dejás vacío, no aparece en la página.</small></label><label>Imagen de presentación<input name="hero-image" type="file" accept="image/jpeg,image/png,image/webp"><small>JPG, PNG o WEBP. Máximo 5 MB. Usá imágenes con autorización.</small></label><div id="image-preview" class="image-preview" hidden></div><button class="button" type="submit">Guardar cambios <span>↗</span></button><p id="content-message" class="message" aria-live="polite"></p></form></section>
+      <section id="complaints-panel" class="panel" hidden><div class="panel-heading"><div><span class="eyebrow">SEGUIMIENTO VECINAL</span><h2>Avisos y quejas</h2><p>Estos mensajes son privados y solo los ve la administración.</p></div><button id="export-xlsx" class="button" type="button">Descargar Excel <span>↓</span></button></div><div class="filters"><label>Desde<input type="date" id="filter-from"></label><label>Hasta<input type="date" id="filter-to"></label><label>Tema<select id="filter-topic"><option value="">Todos</option><option>Alumbrado</option><option>Calles</option><option>Residuos</option><option>Servicios</option><option>Otro</option></select></label><label>Zona<input type="search" id="filter-zone" placeholder="Todas las zonas"></label><label>Estado<select id="filter-status"><option value="">Todos</option><option value="recibida">Recibida</option><option value="en_gestion">En gestión</option><option value="resuelta">Resuelta</option></select></label><button id="refresh-complaints" type="button" class="quiet-button">Actualizar</button></div><p id="complaint-message" class="message" aria-live="polite"></p><div class="table-wrap"><table><thead><tr><th>Enviada</th><th>Ocurrió</th><th>Zona</th><th>Tema</th><th>Descripción</th><th>Estado</th></tr></thead><tbody id="complaint-rows"><tr><td colspan="6" class="empty-row">Iniciá sesión y actualizá la lista.</td></tr></tbody></table></div></section>
+    </section>
+  </main>
+  <footer>Panel privado · Barrio Del Carmen · Río Gallegos</footer>
+</body></html>

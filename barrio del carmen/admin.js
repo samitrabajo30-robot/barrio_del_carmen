@@ -33,6 +33,30 @@ el('#login-form').addEventListener('submit', async (event) => {
   await checkSession();
 });
 
+el('#show-recovery').addEventListener('click', () => {
+  el('#login-form').hidden = true;
+  el('#show-recovery').hidden = true;
+  el('#recovery-form').hidden = false;
+});
+
+el('#hide-recovery').addEventListener('click', () => {
+  el('#recovery-form').hidden = true;
+  el('#login-form').hidden = false;
+  el('#show-recovery').hidden = false;
+});
+
+el('#recovery-form').addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const message = el('#recovery-message');
+  if (!client) { message.textContent = 'No se pudo conectar con Supabase.'; return; }
+  const email = new FormData(event.currentTarget).get('recovery-email').trim();
+  const redirectTo = new URL('reset-password.html', window.location.href).href;
+  const { error } = await client.auth.resetPasswordForEmail(email, { redirectTo });
+  message.textContent = error
+    ? 'No pudimos enviar el enlace. Revisá la conexión e intentá nuevamente.'
+    : 'Si el correo corresponde a una cuenta, recibirás un enlace para cambiar la contraseña.';
+});
+
 el('#logout').addEventListener('click', async () => { await client?.auth.signOut(); location.reload(); });
 document.querySelectorAll('.tab').forEach((tab) => tab.addEventListener('click', () => {
   document.querySelectorAll('.tab').forEach((item) => item.classList.toggle('active', item === tab));

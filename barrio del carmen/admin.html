@@ -1,24 +1,296 @@
 <!doctype html>
 <html lang="es-AR">
 <head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="robots" content="noindex, nofollow"><title>Administración · Barrio Del Carmen</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Administración · Barrio Del Carmen</title>
   <link rel="stylesheet" href="admin.css">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <script src="config.js"></script><script src="admin.js" defer></script>
+  <script src="admin.js" defer></script>
 </head>
 <body>
-  <header class="admin-header"><a href="index.html" class="admin-brand"><span>✳</span><span><b>Barrio Del Carmen</b><small>Panel de administración</small></span></a><a href="index.html" class="back-link">← Ver página pública</a></header>
+  <header class="admin-header">
+    <a href="index.html" class="admin-brand">
+      <span>✳</span>
+      <span><b>Barrio Del Carmen</b><small>Panel de administración</small></span>
+    </a>
+    <a href="index.html" class="back-link">← Ver página pública</a>
+  </header>
+
   <main class="admin-main">
-    <section id="setup-notice" class="notice" hidden><b>Falta conectar el servicio de datos.</b><p>Completá los pasos de configuración en README.md. El panel no guarda cambios mientras falte esa conexión.</p></section>
-    <section id="login-panel" class="login-card"><span class="eyebrow">ACCESO PRIVADO</span><h1>Hola de nuevo.</h1><p>Ingresá con la cuenta autorizada de la Junta Vecinal.</p><form id="login-form"><label>Correo electrónico<input type="email" name="email" autocomplete="username" required></label><label>Contraseña<input type="password" name="password" autocomplete="current-password" required></label><button class="button" type="submit">Ingresar <span>↗</span></button><p id="login-error" class="error" aria-live="polite"></p></form><button id="show-recovery" class="quiet-button" type="button">¿Olvidaste tu contraseña?</button><form id="recovery-form" hidden><p>Te enviaremos un enlace para que puedas crear una contraseña nueva.</p><label>Correo electrónico<input type="email" name="recovery-email" autocomplete="email" required></label><button class="button" type="submit">Enviar enlace <span>↗</span></button><p id="recovery-message" class="message" aria-live="polite"></p><button id="hide-recovery" class="quiet-button" type="button">Volver al inicio de sesión</button></form></section>
+    <!-- PANTALLA DE INICIO DE SESIÓN -->
+    <section id="login-panel" class="login-card">
+      <span class="eyebrow">ACCESO PRIVADO</span>
+      <h1>Hola de nuevo.</h1>
+      <p>Ingresá con tu cuenta de la Junta Vecinal.</p>
+
+      <div class="tabs" style="margin-top: 15px; margin-bottom: 15px;">
+        <button id="tab-login-clave" class="tab active" type="button">Contraseña</button>
+        <button id="tab-login-pin" class="tab" type="button">Ingresar con PIN</button>
+      </div>
+
+      <!-- Formulario Login con Contraseña -->
+      <form id="login-form">
+        <label>Nombre de usuario
+          <input type="text" name="usuario" id="login-usuario" autocomplete="username" placeholder="admin" required>
+        </label>
+        <label>Contraseña
+          <input type="password" name="password" id="login-password" autocomplete="current-password" placeholder="••••••••" required>
+        </label>
+        <button class="button" type="submit">Ingresar a la administración <span>↗</span></button>
+        <p id="login-error" class="error" aria-live="polite"></p>
+      </form>
+
+      <!-- Formulario Login con PIN Temporal -->
+      <form id="pin-login-form" hidden>
+        <p style="font-size: 11px; color: var(--muted); margin: 0 0 10px;">
+          Ingresá tu usuario y el PIN de 4 dígitos enviado por WhatsApp.
+        </p>
+        <div id="pin-paso-1">
+          <label>Nombre de usuario
+            <input type="text" id="pin-user" placeholder="tu_usuario" required>
+          </label>
+          <label>PIN temporal (4 dígitos)
+            <input type="text" id="pin-code" maxlength="4" placeholder="1234" style="text-align: center; font-size: 18px; letter-spacing: 5px; font-weight: bold;" required>
+          </label>
+          <button class="button" type="button" id="btn-validar-pin">Validar PIN <span>→</span></button>
+        </div>
+
+        <div id="pin-paso-2" hidden>
+          <div style="background: #eef5ea; border: 1px solid #cce2c5; padding: 10px; border-radius: 4px; font-size: 11px; margin-bottom: 12px; color: #2c5929;">
+            PIN válido para <strong id="pin-nombre-usuario"></strong>. Creá tu nueva contraseña personal.
+          </div>
+          <label>Nueva contraseña (mínimo 8 caracteres)
+            <input type="password" id="pin-nueva-clave" minlength="8" required>
+          </label>
+          <label>Confirmar nueva contraseña
+            <input type="password" id="pin-confirma-clave" minlength="8" required>
+          </label>
+          <button class="button" type="submit" id="btn-guardar-pin-clave">Guardar contraseña e ingresar <span>↗</span></button>
+        </div>
+        <p id="pin-error" class="error" aria-live="polite"></p>
+      </form>
+    </section>
+
+    <!-- PANEL PRINCIPAL (DASHBOARD) -->
     <section id="dashboard" hidden>
-      <div class="welcome-row"><div><span class="eyebrow">JUNTA VECINAL · GESTIÓN</span><h1>Administración</h1><p>Actualizá la página y hacé seguimiento de los avisos vecinales.</p></div><button id="logout" class="quiet-button">Cerrar sesión</button></div>
-      <nav class="tabs" aria-label="Secciones de administración"><button class="tab active" data-panel="content-panel">Contenido de la página</button><button class="tab" data-panel="complaints-panel">Avisos y quejas</button></nav>
-      <section id="content-panel" class="panel"><div class="panel-heading"><div><span class="eyebrow">EDICIÓN BÁSICA</span><h2>Textos e imagen</h2><p>Los cambios se publican al guardarlos.</p></div></div><form id="content-form" class="content-form"><label>Texto de presentación<textarea name="intro" maxlength="900" rows="4" required></textarea><small>Hasta 900 caracteres.</small></label><label>Historia del barrio<textarea name="history" maxlength="1800" rows="5" placeholder="Sumá una breve historia o información de interés" required></textarea><small>Hasta 1.800 caracteres.</small></label><label>Texto adicional<textarea name="extra" maxlength="900" rows="3" placeholder="Opcional: agregá información o un aviso breve"></textarea><small>Opcional. Si lo dejás vacío, no aparece en la página.</small></label><label>Imagen de presentación<input name="hero-image" type="file" accept="image/jpeg,image/png,image/webp"><small>JPG, PNG o WEBP. Máximo 5 MB. Usá imágenes con autorización.</small></label><div id="image-preview" class="image-preview" hidden></div><button class="button" type="submit">Guardar cambios <span>↗</span></button><p id="content-message" class="message" aria-live="polite"></p></form></section>
-      <section id="complaints-panel" class="panel" hidden><div class="panel-heading"><div><span class="eyebrow">SEGUIMIENTO VECINAL</span><h2>Avisos y quejas</h2><p>Estos mensajes son privados y solo los ve la administración.</p></div><button id="export-xlsx" class="button" type="button">Descargar Excel <span>↓</span></button></div><div class="filters"><label>Desde<input type="date" id="filter-from"></label><label>Hasta<input type="date" id="filter-to"></label><label>Tema<select id="filter-topic"><option value="">Todos</option><option>Alumbrado</option><option>Calles</option><option>Residuos</option><option>Servicios</option><option>Otro</option></select></label><label>Zona<input type="search" id="filter-zone" placeholder="Todas las zonas"></label><label>Estado<select id="filter-status"><option value="">Todos</option><option value="recibida">Recibida</option><option value="en_gestion">En gestión</option><option value="resuelta">Resuelta</option></select></label><button id="refresh-complaints" type="button" class="quiet-button">Actualizar</button></div><p id="complaint-message" class="message" aria-live="polite"></p><div class="table-wrap"><table><thead><tr><th>Enviada</th><th>Ocurrió</th><th>Zona</th><th>Tema</th><th>Descripción</th><th>Estado</th></tr></thead><tbody id="complaint-rows"><tr><td colspan="6" class="empty-row">Iniciá sesión y actualizá la lista.</td></tr></tbody></table></div></section>
+      <div class="welcome-row">
+        <div>
+          <span class="eyebrow">JUNTA VECINAL · GESTIÓN</span>
+          <h1>Administración</h1>
+          <p id="user-greeting">Panel de control de la Junta Vecinal.</p>
+        </div>
+        <button id="logout" class="quiet-button" type="button">Cerrar sesión</button>
+      </div>
+
+      <nav class="tabs" aria-label="Secciones de administración">
+        <button class="tab active" data-panel="content-panel" type="button">Contenido de la página</button>
+        <button class="tab" data-panel="complaints-panel" type="button">Avisos y quejas</button>
+        <button class="tab" data-panel="users-panel" id="tab-users" type="button">Usuarios y Operadores</button>
+        <button class="tab" data-panel="audit-panel" id="tab-audit" type="button">Auditoría</button>
+      </nav>
+
+      <!-- 1. CONTENIDO DE LA PÁGINA -->
+      <section id="content-panel" class="panel">
+        <div class="panel-heading">
+          <div>
+            <span class="eyebrow">EDICIÓN BÁSICA</span>
+            <h2>Textos, imagen y video</h2>
+            <p>Los cambios se publican inmediatamente en la página pública.</p>
+          </div>
+        </div>
+
+        <form id="content-form" class="content-form">
+          <label>Texto de presentación
+            <textarea name="intro" id="edit-intro" maxlength="900" rows="4" required></textarea>
+            <small>Hasta 900 caracteres.</small>
+          </label>
+          <label>Historia del barrio
+            <textarea name="history" id="edit-history" maxlength="1800" rows="5" placeholder="Sumá una breve historia o información de interés" required></textarea>
+            <small>Hasta 1.800 caracteres.</small>
+          </label>
+          <label>Texto adicional o aviso destacado
+            <textarea name="extra" id="edit-extra" maxlength="900" rows="3" placeholder="Opcional: agregá información o un aviso breve"></textarea>
+            <small>Opcional. Si lo dejás vacío, no aparece en la página.</small>
+          </label>
+          <label>Enlace de Imagen de portada (URL)
+            <input name="hero-image" id="edit-hero-image" type="url" placeholder="https://ejemplo.com/foto-barrio.jpg">
+            <small>Pegá la URL pública de una foto JPG, PNG o WEBP.</small>
+          </label>
+          <label>Enlace de Video comunitario (YouTube)
+            <input name="video-url" id="edit-video-url" type="url" placeholder="https://www.youtube.com/watch?v=...">
+            <small>Opcional: pegá el enlace de un video de YouTube para mostrar en el sitio.</small>
+          </label>
+          <button class="button" type="submit">Guardar cambios en la web <span>↗</span></button>
+          <p id="content-message" class="message" aria-live="polite"></p>
+        </form>
+      </section>
+
+      <!-- 2. AVISOS Y QUEJAS VECINALES -->
+      <section id="complaints-panel" class="panel" hidden>
+        <div class="panel-heading">
+          <div>
+            <span class="eyebrow">SEGUIMIENTO VECINAL</span>
+            <h2>Avisos y quejas</h2>
+            <p>Estos mensajes son privados y solo los ve la administración.</p>
+          </div>
+          <button id="export-xlsx" class="button" type="button">Descargar Excel <span>↓</span></button>
+        </div>
+
+        <div class="filters">
+          <label>Desde<input type="date" id="filter-from"></label>
+          <label>Hasta<input type="date" id="filter-to"></label>
+          <label>Tema
+            <select id="filter-topic">
+              <option value="">Todos</option>
+              <option>Alumbrado</option>
+              <option>Calles</option>
+              <option>Residuos</option>
+              <option>Servicios</option>
+              <option>Otro</option>
+            </select>
+          </label>
+          <label>Zona<input type="search" id="filter-zone" placeholder="Todas las zonas"></label>
+          <label>Estado
+            <select id="filter-status">
+              <option value="">Todos</option>
+              <option value="recibida">Recibida</option>
+              <option value="en_gestion">En gestión</option>
+              <option value="resuelta">Resuelta</option>
+            </select>
+          </label>
+          <button id="refresh-complaints" type="button" class="quiet-button">Actualizar</button>
+        </div>
+
+        <p id="complaint-message" class="message" aria-live="polite"></p>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Enviada</th>
+                <th>Ocurrió</th>
+                <th>Zona</th>
+                <th>Tema</th>
+                <th>Descripción</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody id="complaint-rows">
+              <tr><td colspan="6" class="empty-row">Cargando avisos…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 3. USUARIOS Y OPERADORES -->
+      <section id="users-panel" class="panel" hidden>
+        <div class="panel-heading">
+          <div>
+            <span class="eyebrow">GESTIÓN DE ACCESOS</span>
+            <h2>Operadores y Administradores</h2>
+            <p>Control de personas autorizadas a gestionar el sitio y los reclamos.</p>
+          </div>
+          <button id="btn-toggle-nuevo-usuario" class="button" type="button">+ Nuevo Usuario <span>+</span></button>
+        </div>
+
+        <!-- Formulario Crear Usuario -->
+        <div id="form-nuevo-usuario-wrap" style="background: #fbfbf9; border: 1px solid var(--line); padding: 18px; margin-bottom: 20px; border-radius: 4px;" hidden>
+          <h3 style="margin-top:0; font-size: 14px;">Dar de alta un nuevo operador</h3>
+          <form id="form-crear-usuario" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+            <label>Nombre y Apellido
+              <input type="text" id="new-user-nombre" required placeholder="Juan Pérez">
+            </label>
+            <label>Nombre de Usuario
+              <input type="text" id="new-user-usuario" required placeholder="jperez">
+            </label>
+            <label>Rol
+              <select id="new-user-rol">
+                <option value="operador">Operador (gestión de reclamos y contenido)</option>
+                <option value="admin">Administrador (acceso total)</option>
+              </select>
+            </label>
+            <label>Área
+              <input type="text" id="new-user-area" placeholder="Junta Vecinal">
+            </label>
+            <label>Teléfono Celular (para WhatsApp)
+              <input type="tel" id="new-user-telefono" placeholder="5492966123456">
+            </label>
+            <div style="grid-column: 1 / -1; display: flex; gap: 10px; align-items: center; margin-top: 10px;">
+              <button class="button" type="submit">Crear Usuario <span>↗</span></button>
+              <button class="quiet-button" id="btn-cancelar-nuevo-usuario" type="button">Cancelar</button>
+            </div>
+          </form>
+          <p id="new-user-message" class="message" aria-live="polite"></p>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Usuario</th>
+                <th>Rol</th>
+                <th>Área</th>
+                <th>Teléfono</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="user-rows">
+              <tr><td colspan="6" class="empty-row">Cargando usuarios…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 4. HISTORIAL DE AUDITORÍA -->
+      <section id="audit-panel" class="panel" hidden>
+        <div class="panel-heading">
+          <div>
+            <span class="eyebrow">TRAZABILIDAD Y SEGURIDAD</span>
+            <h2>Registro de Auditoría</h2>
+            <p>Historial inmutable de acciones realizadas en el panel.</p>
+          </div>
+          <button id="refresh-audit" class="quiet-button" type="button">Actualizar</button>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Fecha (UTC)</th>
+                <th>Usuario</th>
+                <th>Acción</th>
+                <th>Entidad</th>
+                <th>Detalle</th>
+                <th>IP</th>
+              </tr>
+            </thead>
+            <tbody id="audit-rows">
+              <tr><td colspan="6" class="empty-row">Cargando registros…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
     </section>
   </main>
+
+  <!-- MODAL PARA PIN Y WHATSAPP -->
+  <dialog id="pin-modal" style="border: 1px solid var(--line); border-radius: 8px; padding: 25px; max-width: 440px; background: white; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+    <h3 style="margin-top:0; font-size: 16px;">PIN Temporal Generado</h3>
+    <p style="font-size: 12px; color: var(--muted);">Este PIN es de un solo uso y tiene una vigencia de 24 horas.</p>
+    <div style="background: #f4f6f1; border: 1px solid #dce2d6; border-radius: 6px; padding: 15px; text-align: center; margin: 15px 0;">
+      <span style="font-size: 10px; color: #6a776c; display: block;">USUARIO: <strong id="modal-pin-user"></strong></span>
+      <span id="modal-pin-valor" style="font-size: 32px; font-weight: bold; letter-spacing: 6px; color: var(--forest); display: block; margin: 8px 0;">1234</span>
+      <span style="font-size: 11px; color: #5f6e61;">Válido para configurar una contraseña nueva.</span>
+    </div>
+    <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 18px;">
+      <a id="modal-pin-whatsapp" href="#" target="_blank" class="button" style="background: #25d366; color: white;">Enviar por WhatsApp <span>↗</span></a>
+      <button id="modal-pin-close" class="quiet-button" type="button">Cerrar</button>
+    </div>
+  </dialog>
+
   <footer>Panel privado · Barrio Del Carmen · Río Gallegos</footer>
-</body></html>
+</body>
+</html>

@@ -1,9 +1,5 @@
 const businesses = [];
 let selectedCategory = 'Todos';
-const backendConfig = window.BARRIO_CONFIG || {};
-const supabaseClient = backendConfig.supabaseUrl && backendConfig.supabaseAnonKey && window.supabase?.createClient
-  ? window.supabase.createClient(backendConfig.supabaseUrl, backendConfig.supabaseAnonKey)
-  : null;
 
 const businessList = document.querySelector('#business-list');
 const searchInput = document.querySelector('#business-search');
@@ -16,7 +12,9 @@ function renderBusinesses() {
     return matchesCategory && matchesQuery;
   });
 
-  document.querySelector('[data-category="Todos"] span').textContent = businesses.length;
+  const categoryTab = document.querySelector('[data-category="Todos"] span');
+  if (categoryTab) categoryTab.textContent = businesses.length;
+
   if (!filtered.length) {
     businessList.innerHTML = `<div class="business-empty"><div class="empty-icon" aria-hidden="true">⌕</div><div><h3>${query || selectedCategory !== 'Todos' ? 'No encontramos resultados.' : 'El directorio está en preparación.'}</h3><p>${query || selectedCategory !== 'Todos' ? 'Probá con otro nombre o rubro.' : 'Pronto vas a encontrar comercios y servicios del barrio. La Junta Vecinal validará la información antes de publicarla.'}</p></div></div>`;
     return;
@@ -34,19 +32,42 @@ document.querySelectorAll('.category-chip').forEach((button) => button.addEventL
 renderBusinesses();
 
 async function loadPublicContent() {
-  if (!supabaseClient) return;
-  const { data, error } = await supabaseClient.from('site_content').select('key,value');
-  if (error || !data) return;
-  const content = Object.fromEntries(data.map((item) => [item.key, item.value]));
-  if (content.intro) document.querySelector('#site-intro').textContent = content.intro;
-  if (content.history) document.querySelector('#site-history').textContent = content.history;
-  if (content.extra_text) { const extra = document.querySelector('#site-extra'); extra.textContent = content.extra_text; extra.hidden = false; }
-  if (content.hero_image) {
-    const art = document.querySelector('#hero-art');
-    const image = document.querySelector('#hero-photo');
-    image.src = content.hero_image;
-    image.hidden = false;
-    art.classList.add('has-photo');
+  try {
+    const res = await fetch('/api/contenido');
+    if (!res.ok) return;
+    const data = await res.json();
+    const content = data.contenido || {};
+    if (content.intro) document.querySelector('#site-intro').textContent = content.intro;
+    if (content.history) document.querySelector('#site-history').textContent = content.history;
+    if (content.extra_text) {
+      const extra = document.querySelector('#site-extra');
+      extra.textContent = content.extra_text;
+      extra.hidden = false;
+    }
+    if (content.hero_image) {
+      const art = document.querySelector('#hero-art');
+      const image = document.querySelector('#hero-photo');
+      if (image && art) {
+        image.src = content.hero_image;
+        image.hidden = false;
+        art.classList.add('has-photo');
+      }
+    }
+    if (content.video_url) {
+      const videoWrap = document.querySelector('#site-video-wrap');
+      if (videoWrap) {
+        let embedUrl = content.video_url.trim();
+        if (embedUrl.includes('youtube.com/watch?v=')) {
+          embedUrl = embedUrl.replace('watch?v=', 'embed/').split('&')[0];
+        } else if (embedUrl.includes('youtu.be/')) {
+          embedUrl = embedUrl.replace('youtu.be/', 'youtube.com/embed/').split('?')[0];
+        }
+        videoWrap.innerHTML = `<iframe width="100%" height="280" src="${embedUrl}" title="Video del barrio" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="border-radius: 16px; margin-top: 1rem;"></iframe>`;
+        videoWrap.hidden = false;
+      }
+    }
+  } catch (e) {
+    console.warn('Contenido dinámico en modo local/preparación.');
   }
 }
 loadPublicContent();
@@ -92,7 +113,7 @@ document.querySelectorAll('.open-form').forEach((button) => button.addEventListe
   document.querySelector('#dialog-copy').textContent = config.copy;
   const isComplaint = button.dataset.form === 'complaint';
   dialogNotice.textContent = isComplaint
-    ? (supabaseClient ? 'El aviso se enviará de forma privada a la Junta Vecinal. No se publicará en la página.' : 'El envío todavía no está activado. Cuando se conecte el servicio, este formulario enviará el aviso de forma privada a la Junta Vecinal.')
+    ? 'El aviso se enviará de forma privada a la Junta Vecinal. No se publicará en la página.'
     : 'La publicación de eventos todavía no está activada. Esta opción muestra una vista previa y no guarda ni envía el mensaje.';
   dialogSubmit.innerHTML = isComplaint ? 'Enviar aviso <span>↗</span>' : 'Ver vista previa <span>↗</span>';
   formPreview.textContent = '';
@@ -106,19 +127,41 @@ document.querySelectorAll('.open-form').forEach((button) => button.addEventListe
 
 document.querySelector('#demo-form').addEventListener('submit', async (event) => {
   event.preventDefault();
-  const values = new FormData(event.currentTarget);
+  const form = event.currentTarget;
+  const values = new FormData(form);
   if (values.get('website')) return;
+
   if (document.querySelector('#dialog-tag').textContent === 'AVISOS Y QUEJAS') {
-    if (!supabaseClient) { formPreview.textContent = 'No se envió. La Junta Vecinal todavía debe conectar el servicio de recepción.'; return; }
-    const { error } = await supabaseClient.from('complaints').insert({
-      problem_date: values.get('problem-date'), problem_time: values.get('problem-time'),
-      zone: values.get('zone').trim(), topic: values.get('topic'), description: values.get('description').trim(),
-    });
-    if (error) { formPreview.textContent = 'No pudimos enviar el aviso. Revisá los datos e intentá nuevamente más tarde.'; return; }
-    event.currentTarget.reset();
-    formPreview.textContent = 'Tu aviso fue enviado a la Junta Vecinal. Gracias por ayudar a cuidar el barrio.';
+    formPreview.textContent = 'Enviando aviso a la Junta Vecinal…';
+    try {
+      const payload = {
+        'problem-date': values.get('problem-date'),
+        'problem-time': values.get('problem-time'),
+        'zone': values.get('zone'),
+        'topic': values.get('topic'),
+        'description': values.get('description'),
+        'website': values.get('website') || ''
+      };
+
+      const res = await fetch('/api/reclamos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+
+      if (res.ok && data.ok) {
+        form.reset();
+        formPreview.textContent = 'Tu aviso fue enviado a la Junta Vecinal. Gracias por ayudar a cuidar el barrio.';
+      } else {
+        formPreview.textContent = data.error || 'No pudimos enviar el aviso. Revisá los datos e intentá más tarde.';
+      }
+    } catch (err) {
+      formPreview.textContent = 'No pudimos conectar con el servidor. Revisá tu conexión e intentá de nuevo.';
+    }
     return;
   }
+
   const preview = [...values.entries()].filter(([key]) => key !== 'website').map(([key, value]) => `${key.replaceAll('-', ' ')}: ${value}`);
   formPreview.textContent = `Vista previa (no enviada): ${preview.join(' · ')}`;
 });

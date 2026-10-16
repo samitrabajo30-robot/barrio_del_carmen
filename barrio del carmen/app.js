@@ -56,14 +56,15 @@ async function loadPublicContent() {
     if (content.video_url) {
       const videoWrap = document.querySelector('#site-video-wrap');
       if (videoWrap) {
-        let embedUrl = content.video_url.trim();
-        if (embedUrl.includes('youtube.com/watch?v=')) {
-          embedUrl = embedUrl.replace('watch?v=', 'embed/').split('&')[0];
-        } else if (embedUrl.includes('youtu.be/')) {
-          embedUrl = embedUrl.replace('youtu.be/', 'youtube.com/embed/').split('?')[0];
+        const rawUrl = content.video_url.trim();
+        const ytMatch = rawUrl.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+        if (ytMatch && ytMatch[1]) {
+          const safeId = encodeURIComponent(ytMatch[1]);
+          videoWrap.innerHTML = `<iframe width="100%" height="280" src="https://www.youtube.com/embed/${safeId}" title="Video del barrio" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="border-radius: 16px; margin-top: 1rem;"></iframe>`;
+          videoWrap.hidden = false;
+        } else {
+          videoWrap.hidden = true;
         }
-        videoWrap.innerHTML = `<iframe width="100%" height="280" src="${embedUrl}" title="Video del barrio" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="border-radius: 16px; margin-top: 1rem;"></iframe>`;
-        videoWrap.hidden = false;
       }
     }
   } catch (e) {

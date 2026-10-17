@@ -66,6 +66,36 @@ CREATE TABLE IF NOT EXISTS contenido_sitio (
     actualizado_en TEXT NOT NULL DEFAULT (datetime('now', 'utc'))
 );
 
+-- 5. Tabla de Eventos Vecinales y Agenda Comunitaria
+CREATE TABLE IF NOT EXISTS eventos (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    nombre TEXT NOT NULL,
+    descripcion TEXT NOT NULL,
+    fecha TEXT NOT NULL,
+    horario TEXT NOT NULL,
+    lugar TEXT NOT NULL,
+    estado TEXT NOT NULL DEFAULT 'publicado',
+    creado_en TEXT NOT NULL DEFAULT (datetime('now', 'utc'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_eventos_fecha ON eventos(fecha);
+CREATE INDEX IF NOT EXISTS idx_eventos_estado ON eventos(estado);
+
+-- 6. Tabla de Comercios y Servicios del Barrio
+CREATE TABLE IF NOT EXISTS comercios (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    nombre TEXT NOT NULL,
+    categoria TEXT NOT NULL,
+    descripcion TEXT NOT NULL,
+    direccion TEXT,
+    telefono TEXT,
+    activo INTEGER NOT NULL DEFAULT 1,
+    creado_en TEXT NOT NULL DEFAULT (datetime('now', 'utc'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_comercios_categoria ON comercios(categoria);
+CREATE INDEX IF NOT EXISTS idx_comercios_activo ON comercios(activo);
+
 -- Valores iniciales del sitio
 INSERT INTO contenido_sitio (clave, valor) VALUES
 ('intro', 'Este es un punto de encuentro para quienes viven y trabajan en el barrio. Queremos compartir información útil, celebrar lo que hacemos juntos y encontrar soluciones entre todos.'),
@@ -75,7 +105,7 @@ INSERT INTO contenido_sitio (clave, valor) VALUES
 ('video_url', '')
 ON CONFLICT (clave) DO NOTHING;
 
--- 5. Administrador Inicial: usuario 'admin' con clave 'Admin2026!'
+-- Administrador Inicial: usuario 'admin' con clave 'Admin2026!'
 INSERT INTO usuarios (usuario, hash_clave, nombre, rol, area, activo, debe_cambiar_clave)
 VALUES (
     'admin',

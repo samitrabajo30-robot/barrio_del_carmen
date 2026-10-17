@@ -190,11 +190,238 @@ document.querySelectorAll('.tab[data-panel]').forEach((tab) => {
       panel.hidden = panel.id !== tab.dataset.panel;
     });
 
+    if (tab.dataset.panel === 'events-panel') loadAdminEvents();
+    if (tab.dataset.panel === 'businesses-panel') loadAdminBusinesses();
     if (tab.dataset.panel === 'complaints-panel') loadComplaints();
     if (tab.dataset.panel === 'users-panel') loadUsers();
     if (tab.dataset.panel === 'audit-panel') loadAudit();
   });
 });
+
+// =============================================================================
+// EVENTOS VECINALES Y AGENDA COMUNITARIA
+// =============================================================================
+
+el('#btn-toggle-nuevo-evento')?.addEventListener('click', () => {
+  const wrap = el('#form-nuevo-evento-wrap');
+  wrap.hidden = !wrap.hidden;
+});
+
+el('#btn-cancelar-nuevo-evento')?.addEventListener('click', () => {
+  el('#form-nuevo-evento-wrap').hidden = true;
+});
+
+async function loadAdminEvents() {
+  const tbody = el('#event-rows');
+  const msg = el('#events-message');
+  msg.textContent = 'Cargando eventos…';
+
+  try {
+    const res = await fetch('/api/admin/eventos', { credentials: 'include' });
+    if (!res.ok) {
+      msg.textContent = 'Error al cargar eventos.';
+      return;
+    }
+    const data = await res.json();
+    const eventos = data.eventos || [];
+    msg.textContent = `${eventos.length} evento(s) cargado(s).`;
+    renderAdminEvents(eventos);
+  } catch (err) {
+    msg.textContent = 'Error al conectar para obtener los eventos.';
+  }
+}
+
+function renderAdminEvents(eventos) {
+  const tbody = el('#event-rows');
+  tbody.replaceChildren();
+
+  if (!eventos.length) {
+    const tr = tbody.insertRow();
+    const td = tr.insertCell();
+    td.colSpan = 6;
+    td.className = 'empty-row';
+    td.textContent = 'No hay eventos cargados aún.';
+    return;
+  }
+
+  for (const ev of eventos) {
+    const tr = tbody.insertRow();
+    [ev.fecha, ev.horario ? ev.horario.slice(0, 5) : '-', ev.nombre, ev.lugar, ev.descripcion].forEach((txt) => {
+      tr.insertCell().textContent = txt || '-';
+    });
+
+    const actionsCell = tr.insertCell();
+    const btnEliminar = document.createElement('button');
+    btnEliminar.className = 'quiet-button';
+    btnEliminar.textContent = '✕ Eliminar';
+    btnEliminar.style.color = '#a23f32';
+    btnEliminar.addEventListener('click', async () => {
+      if (!confirm(`¿Eliminar el evento "${ev.nombre}"?`)) return;
+      try {
+        const res = await fetch(`/api/admin/eventos/${ev.id}`, {
+          method: 'DELETE',
+          credentials: 'include'
+        });
+        if (res.ok) {
+          loadAdminEvents();
+        } else {
+          alert('No se pudo eliminar el evento.');
+        }
+      } catch (e) {
+        alert('Error de conexión.');
+      }
+    });
+    actionsCell.append(btnEliminar);
+  }
+}
+
+el('#form-crear-evento')?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const msg = el('#new-event-message');
+  msg.textContent = 'Guardando evento…';
+
+  const payload = {
+    nombre: el('#new-event-name').value.trim(),
+    fecha: el('#new-event-date').value,
+    horario: el('#new-event-time').value,
+    lugar: el('#new-event-place').value.trim(),
+    descripcion: el('#new-event-description').value.trim()
+  };
+
+  try {
+    const res = await fetch('/api/admin/eventos', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+
+    if (res.ok && data.ok) {
+      msg.textContent = '¡Evento publicado con éxito!';
+      el('#form-crear-evento').reset();
+      el('#form-nuevo-evento-wrap').hidden = true;
+      loadAdminEvents();
+    } else {
+      msg.textContent = data.error || 'No se pudo guardar el evento.';
+    }
+  } catch (err) {
+    msg.textContent = 'Error de conexión con el servidor.';
+  }
+});
+
+// =============================================================================
+// COMERCIOS Y SERVICIOS DEL BARRIO
+// =============================================================================
+
+el('#btn-toggle-nuevo-comercio')?.addEventListener('click', () => {
+  const wrap = el('#form-nuevo-comercio-wrap');
+  wrap.hidden = !wrap.hidden;
+});
+
+el('#btn-cancelar-nuevo-comercio')?.addEventListener('click', () => {
+  el('#form-nuevo-comercio-wrap').hidden = true;
+});
+
+async function loadAdminBusinesses() {
+  const tbody = el('#business-rows');
+  const msg = el('#businesses-message');
+  msg.textContent = 'Cargando comercios…';
+
+  try {
+    const res = await fetch('/api/admin/comercios', { credentials: 'include' });
+    if (!res.ok) {
+      msg.textContent = 'Error al cargar comercios.';
+      return;
+    }
+    const data = await res.json();
+    const comercios = data.comercios || [];
+    msg.textContent = `${comercios.length} comercio(s) registrado(s).`;
+    renderAdminBusinesses(comercios);
+  } catch (err) {
+    msg.textContent = 'Error al conectar para obtener los comercios.';
+  }
+}
+
+function renderAdminBusinesses(comercios) {
+  const tbody = el('#business-rows');
+  tbody.replaceChildren();
+
+  if (!comercios.length) {
+    const tr = tbody.insertRow();
+    const td = tr.insertCell();
+    td.colSpan = 6;
+    td.className = 'empty-row';
+    td.textContent = 'No hay comercios cargados todavía.';
+    return;
+  }
+
+  for (const c of comercios) {
+    const tr = tbody.insertRow();
+    [c.nombre, c.categoria, c.direccion || '-', c.telefono || '-', c.descripcion].forEach((txt) => {
+      tr.insertCell().textContent = txt || '-';
+    });
+
+    const actionsCell = tr.insertCell();
+    const btnEliminar = document.createElement('button');
+    btnEliminar.className = 'quiet-button';
+    btnEliminar.textContent = '✕ Eliminar';
+    btnEliminar.style.color = '#a23f32';
+    btnEliminar.addEventListener('click', async () => {
+      if (!confirm(`¿Eliminar el comercio "${c.nombre}"?`)) return;
+      try {
+        const res = await fetch(`/api/admin/comercios/${c.id}`, {
+          method: 'DELETE',
+          credentials: 'include'
+        });
+        if (res.ok) {
+          loadAdminBusinesses();
+        } else {
+          alert('No se pudo eliminar el comercio.');
+        }
+      } catch (e) {
+        alert('Error de conexión.');
+      }
+    });
+    actionsCell.append(btnEliminar);
+  }
+}
+
+el('#form-crear-comercio')?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const msg = el('#new-business-message');
+  msg.textContent = 'Guardando comercio…';
+
+  const payload = {
+    nombre: el('#new-business-name').value.trim(),
+    categoria: el('#new-business-category').value,
+    direccion: el('#new-business-address').value.trim(),
+    telefono: el('#new-business-phone').value.trim(),
+    descripcion: el('#new-business-description').value.trim()
+  };
+
+  try {
+    const res = await fetch('/api/admin/comercios', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+
+    if (res.ok && data.ok) {
+      msg.textContent = '¡Comercio agregado con éxito!';
+      el('#form-crear-comercio').reset();
+      el('#form-nuevo-comercio-wrap').hidden = true;
+      loadAdminBusinesses();
+    } else {
+      msg.textContent = data.error || 'No se pudo agregar el comercio.';
+    }
+  } catch (err) {
+    msg.textContent = 'Error al comunicarse con el servidor.';
+  }
+});
+
 
 // =============================================================================
 // 2. CONTENIDO DE LA PÁGINA
@@ -360,20 +587,25 @@ el('#filter-zone').addEventListener('input', () => {
 
 // Descargar Excel (.xlsx)
 el('#export-xlsx').addEventListener('click', () => {
-  if (!currentComplaints.length) {
-    alert('No hay avisos para exportar con los filtros actuales.');
-    return;
-  }
-
-  const datosExcel = currentComplaints.map((c) => ({
-    'Fecha de Envío': c.creado_en ? new Date(c.creado_en).toLocaleString('es-AR') : '',
-    'Fecha del Problema': c.fecha_problema,
-    'Horario Aproximado': c.hora_problema,
-    'Zona del Barrio': c.zona,
-    'Tema': c.tema,
-    'Descripción del Reclamo': c.descripcion,
-    'Estado': c.estado.toUpperCase()
-  }));
+  const datosExcel = currentComplaints.length > 0
+    ? currentComplaints.map((c) => ({
+        'Fecha de Envío': c.creado_en ? new Date(c.creado_en).toLocaleString('es-AR') : '',
+        'Fecha del Problema': c.fecha_problema,
+        'Horario Aproximado': c.hora_problema,
+        'Zona del Barrio': c.zona,
+        'Tema': c.tema,
+        'Descripción del Reclamo': c.descripcion,
+        'Estado': (c.estado || 'RECIBIDA').toUpperCase()
+      }))
+    : [{
+        'Fecha de Envío': new Date().toLocaleString('es-AR'),
+        'Fecha del Problema': '-',
+        'Horario Aproximado': '-',
+        'Zona del Barrio': '-',
+        'Tema': 'Sin avisos',
+        'Descripción del Reclamo': 'No hay reclamos registrados aún en la base de datos.',
+        'Estado': 'PLANILLA INICIAL'
+      }];
 
   const hoja = XLSX.utils.json_to_sheet(datosExcel);
   const libro = XLSX.utils.book_new();

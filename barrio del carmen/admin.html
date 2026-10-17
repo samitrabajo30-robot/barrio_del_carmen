@@ -86,6 +86,8 @@
 
       <nav class="tabs" aria-label="Secciones de administración">
         <button class="tab active" data-panel="content-panel" type="button">Contenido de la página</button>
+        <button class="tab" data-panel="events-panel" type="button">Eventos del barrio</button>
+        <button class="tab" data-panel="businesses-panel" type="button">Comercios y servicios</button>
         <button class="tab" data-panel="complaints-panel" type="button">Avisos y quejas</button>
         <button class="tab" data-panel="users-panel" id="tab-users" type="button">Usuarios y Operadores</button>
         <button class="tab" data-panel="audit-panel" id="tab-audit" type="button">Auditoría</button>
@@ -127,7 +129,130 @@
         </form>
       </section>
 
-      <!-- 2. AVISOS Y QUEJAS VECINALES -->
+      <!-- 2. EVENTOS DEL BARRIO -->
+      <section id="events-panel" class="panel" hidden>
+        <div class="panel-heading">
+          <div>
+            <span class="eyebrow">AGENDA COMUNITARIA</span>
+            <h2>Eventos del barrio</h2>
+            <p>Administrá los eventos que se muestran en Novedades del barrio en la página principal.</p>
+          </div>
+          <button id="btn-toggle-nuevo-evento" class="button" type="button">+ Nuevo Evento <span>+</span></button>
+        </div>
+
+        <!-- Formulario Crear Evento -->
+        <div id="form-nuevo-evento-wrap" style="background: #fbfbf9; border: 1px solid var(--line); padding: 18px; margin-bottom: 20px; border-radius: 4px;" hidden>
+          <h3 style="margin-top:0; font-size: 14px;">Publicar nuevo evento comunitario</h3>
+          <form id="form-crear-evento" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+            <label style="grid-column: 1 / -1;">Nombre del evento
+              <input type="text" id="new-event-name" required placeholder="ej. Taller de Huerto Comunitario" maxlength="120">
+            </label>
+            <label>Fecha
+              <input type="date" id="new-event-date" required>
+            </label>
+            <label>Horario
+              <input type="time" id="new-event-time" required>
+            </label>
+            <label style="grid-column: 1 / -1;">Lugar
+              <input type="text" id="new-event-place" required placeholder="ej. Plaza del Barrio, Sede Vecinal" maxlength="120">
+            </label>
+            <label style="grid-column: 1 / -1;">Descripción
+              <textarea id="new-event-description" required rows="3" placeholder="Detalles de la actividad, qué llevar, etc." maxlength="1000"></textarea>
+            </label>
+            <div style="grid-column: 1 / -1; display: flex; gap: 10px; align-items: center; margin-top: 10px;">
+              <button class="button" type="submit">Publicar Evento <span>↗</span></button>
+              <button class="quiet-button" id="btn-cancelar-nuevo-evento" type="button">Cancelar</button>
+            </div>
+          </form>
+          <p id="new-event-message" class="message" aria-live="polite"></p>
+        </div>
+
+        <p id="events-message" class="message" aria-live="polite"></p>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Horario</th>
+                <th>Nombre del Evento</th>
+                <th>Lugar</th>
+                <th>Descripción</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="event-rows">
+              <tr><td colspan="6" class="empty-row">Cargando eventos…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 3. COMERCIOS Y SERVICIOS -->
+      <section id="businesses-panel" class="panel" hidden>
+        <div class="panel-heading">
+          <div>
+            <span class="eyebrow">GUÍA COMERCIAL</span>
+            <h2>Comercios y servicios del barrio</h2>
+            <p>Agregá y gestioná los comercios locales que aparecen en el buscador de la página principal.</p>
+          </div>
+          <button id="btn-toggle-nuevo-comercio" class="button" type="button">+ Nuevo Comercio <span>+</span></button>
+        </div>
+
+        <!-- Formulario Crear Comercio -->
+        <div id="form-nuevo-comercio-wrap" style="background: #fbfbf9; border: 1px solid var(--line); padding: 18px; margin-bottom: 20px; border-radius: 4px;" hidden>
+          <h3 style="margin-top:0; font-size: 14px;">Dar de alta un comercio o servicio</h3>
+          <form id="form-crear-comercio" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+            <label>Nombre del comercio
+              <input type="text" id="new-business-name" required placeholder="ej. Panadería La Unión" maxlength="100">
+            </label>
+            <label>Categoría
+              <select id="new-business-category" required>
+                <option value="Gastronomía">Gastronomía</option>
+                <option value="Salud">Salud</option>
+                <option value="Almacenes">Almacenes</option>
+                <option value="Otros servicios">Otros servicios</option>
+              </select>
+            </label>
+            <label>Dirección (en el barrio)
+              <input type="text" id="new-business-address" placeholder="ej. Av. Principal 450" maxlength="120">
+            </label>
+            <label>Teléfono o WhatsApp de contacto
+              <input type="tel" id="new-business-phone" placeholder="ej. 2966-123456" maxlength="50">
+            </label>
+            <label style="grid-column: 1 / -1;">Descripción de productos o servicios
+              <textarea id="new-business-description" required rows="3" placeholder="Breve detalle de lo que ofrece el comercio" maxlength="500"></textarea>
+            </label>
+            <div style="grid-column: 1 / -1; display: flex; gap: 10px; align-items: center; margin-top: 10px;">
+              <button class="button" type="submit">Agregar Comercio <span>↗</span></button>
+              <button class="quiet-button" id="btn-cancelar-nuevo-comercio" type="button">Cancelar</button>
+            </div>
+          </form>
+          <p id="new-business-message" class="message" aria-live="polite"></p>
+        </div>
+
+        <p id="businesses-message" class="message" aria-live="polite"></p>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Categoría</th>
+                <th>Dirección</th>
+                <th>Teléfono</th>
+                <th>Descripción</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="business-rows">
+              <tr><td colspan="6" class="empty-row">Cargando comercios…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 4. AVISOS Y QUEJAS VECINALES -->
       <section id="complaints-panel" class="panel" hidden>
         <div class="panel-heading">
           <div>

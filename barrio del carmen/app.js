@@ -84,8 +84,29 @@ function formatFechaEvento(fechaStr) {
 }
 
 async function loadEvents() {
-  const container = document.querySelector('#events-container');
+  let container = document.querySelector('#events-container');
+  const novedadesSec = document.querySelector('#novedades');
+
+  if (!container && novedadesSec) {
+    container = document.createElement('div');
+    container.id = 'events-container';
+    container.className = 'events-container';
+
+    const existingEmpty = novedadesSec.querySelector('.news-empty');
+    if (existingEmpty) {
+      existingEmpty.replaceWith(container);
+    } else {
+      const heading = novedadesSec.querySelector('.section-heading');
+      if (heading) {
+        heading.after(container);
+      } else {
+        novedadesSec.append(container);
+      }
+    }
+  }
+
   if (!container) return;
+
   try {
     const res = await fetch('/api/eventos');
     if (!res.ok) return;
@@ -109,16 +130,16 @@ async function loadEvents() {
       return `
         <article class="event-item">
           <div class="news-calendar">
-            <span>${infoFecha.mes}</span>
-            <strong>${infoFecha.dia}</strong>
-            <small>${horario ? `${horario} HS` : 'A CONFIRMAR'}</small>
+            <span style="font-size: 10px; font-weight: 700; color: #5a7550; letter-spacing: 1px;">${infoFecha.mes}</span>
+            <strong style="font-size: 32px; font-weight: 800; line-height: 1; color: var(--forest-deep);">${infoFecha.dia}</strong>
+            <small style="font-size: 9px; font-weight: 600; color: #72826d;">${horario ? `${horario} HS` : 'A CONFIRMAR'}</small>
           </div>
           <div class="event-info">
             <span class="tag">AGENDA VECINAL</span>
-            <h3>${escapeHtml(ev.nombre)}</h3>
-            <p>${escapeHtml(ev.descripcion)}</p>
-            <div class="event-meta">
-              <span>📅 <strong>Fecha del evento:</strong> ${infoFecha.texto}</span>
+            <h3 style="font-size: 20px; margin: 6px 0 8px; color: var(--forest-deep);">${escapeHtml(ev.nombre)}</h3>
+            <p style="font-size: 13px; color: #43534b; margin: 0 0 12px; line-height: 1.6;">${escapeHtml(ev.descripcion)}</p>
+            <div class="event-meta" style="display: flex; flex-wrap: wrap; gap: 16px; font-size: 12px; color: #55655d; background: #f6f8f4; padding: 8px 12px; border-radius: 4px; border: 1px solid #e5ede2;">
+              <span>📅 <strong>Fecha:</strong> ${infoFecha.texto}</span>
               ${horario ? `<span>🕒 <strong>Horario:</strong> ${horario} hs</span>` : ''}
               ${ev.lugar ? `<span>📍 <strong>Lugar:</strong> ${escapeHtml(ev.lugar)}</span>` : ''}
             </div>

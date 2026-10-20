@@ -9,8 +9,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css">
-  <script src="app.js" defer></script>
+  <link rel="stylesheet" href="styles.css?v=2">
+  <script src="app.js?v=2" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#contenido">Ir al contenido</a>
@@ -75,11 +75,12 @@
 
     <section class="news section-wrap" id="novedades">
       <div class="section-heading"><div><div class="section-kicker"><span>04</span><i></i> LO QUE PASA</div><h2>Novedades del <em>barrio.</em></h2></div><p>Reuniones, actividades y noticias para estar al día y participar.</p></div>
-      <div class="news-empty"><div class="news-calendar"><span>PRÓXIMO</span><strong>—</strong><small>A CONFIRMAR</small></div><div><span class="tag">AGENDA VECINAL</span><h3>Estamos preparando el próximo encuentro.</h3><p>Las novedades y actividades oficiales se publicarán por este medio.</p></div><span class="news-spark" aria-hidden="true">✳</span></div>
-      <p class="content-note">Todavía no hay publicaciones. La Junta Vecinal podrá agregar novedades cuando esta página tenga un sistema de administración conectado.</p>
+      <div id="events-container" class="events-container">
+        <div class="news-empty"><div class="news-calendar"><span>PRÓXIMO</span><strong>—</strong><small>A CONFIRMAR</small></div><div><span class="tag">AGENDA VECINAL</span><h3>Estamos preparando el próximo encuentro.</h3><p>Las novedades y actividades oficiales se publicarán por este medio.</p></div><span class="news-spark" aria-hidden="true">✳</span></div>
+      </div>
     </section>
 
-    <section class="participation" id="participacion"><div class="participation-inner"><div class="section-kicker section-kicker-light"><span>05</span><i></i> NOS ESCUCHAMOS</div><h2>Tu voz también<br>hace <em>barrio.</em></h2><p>Entre vecinos podemos poner en común lo que pasa y lo que nos gustaría hacer.</p><div class="participation-cards"><article class="participation-card"><div class="card-icon complaint-icon" aria-hidden="true">!</div><span class="tag">AVISOS Y QUEJAS</span><h3>¿Hay algo que necesita atención?</h3><p>Alumbrado, calles, residuos o servicios: contanos qué pasa y en qué zona.</p><button class="button button-light open-form" data-form="complaint">Contar un problema <span>↗</span></button></article><article class="participation-card event-card"><div class="card-icon event-icon" aria-hidden="true">✳</div><span class="tag">EVENTOS VECINALES</span><h3>¿Estás organizando algo?</h3><p>Compartí una actividad, una invitación o una propuesta con tus vecinos.</p><button class="button button-outline open-form" data-form="event">Compartir un evento <span>↗</span></button></article></div><div class="privacy-note"><span aria-hidden="true">◉</span><p><strong>Sobre los mensajes:</strong> las quejas se envían a la Junta Vecinal para su seguimiento y no se publican en esta página. El formulario no solicita nombre ni teléfono. Los eventos siguen siendo una vista previa hasta activar esa función.</p></div></div></section>
+    <section class="participation" id="participacion"><div class="participation-inner"><div class="section-kicker section-kicker-light"><span>05</span><i></i> NOS ESCUCHAMOS</div><h2>Tu voz también<br>hace <em>barrio.</em></h2><p>Entre vecinos podemos poner en común lo que pasa y lo que nos gustaría hacer.</p><div class="participation-cards"><article class="participation-card"><div class="card-icon complaint-icon" aria-hidden="true">!</div><span class="tag">AVISOS Y QUEJAS</span><h3>¿Hay algo que necesita atención?</h3><p>Alumbrado, calles, residuos o servicios: contanos qué pasa y en qué zona.</p><button class="button button-light open-form" data-form="complaint">Contar un problema <span>↗</span></button></article><article class="participation-card event-card"><div class="card-icon event-icon" aria-hidden="true">✳</div><span class="tag">EVENTOS VECINALES</span><h3>¿Estás organizando algo?</h3><p>Compartí una actividad, una invitación o una propuesta con tus vecinos.</p><button class="button button-outline open-form" data-form="event">Compartir un evento <span>↗</span></button></article></div><div class="privacy-note"><span aria-hidden="true">◉</span><p><strong>Sobre los mensajes:</strong> las quejas se envían a la Junta Vecinal de forma privada. Los eventos compartidos se publican en Novedades del barrio para que toda la comunidad pueda sumarse.</p></div></div></section>
 
     <section class="contact section-wrap" id="contacto"><div class="contact-mark" aria-hidden="true">✳</div><div><div class="section-kicker"><span>06</span><i></i> JUNTOS, MÁS CERCA</div><h2>Hablemos del <em>barrio.</em></h2><p>La Junta Vecinal podrá sumar aquí sus canales oficiales de contacto.</p></div><span class="button button-dark contact-pending">Datos de contacto pendientes</span></section>
   </main>

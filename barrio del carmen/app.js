@@ -61,6 +61,28 @@ async function loadBusinesses() {
   }
 }
 
+function formatFechaEvento(fechaStr) {
+  if (!fechaStr) return { dia: '—', mes: 'PRÓX', texto: 'Fecha a confirmar' };
+  try {
+    const match = String(fechaStr).match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (match) {
+      const anio = match[1];
+      const mesNum = parseInt(match[2], 10);
+      const diaNum = parseInt(match[3], 10);
+      const mesesCortos = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'];
+      const mesesLargos = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+      const mesCorto = mesesCortos[mesNum - 1] || 'MES';
+      const mesLargo = mesesLargos[mesNum - 1] || '';
+      return {
+        dia: String(diaNum).padStart(2, '0'),
+        mes: mesCorto,
+        texto: `${diaNum} de ${mesLargo} de ${anio}`
+      };
+    }
+  } catch (e) {}
+  return { dia: '—', mes: 'PRÓX', texto: fechaStr };
+}
+
 async function loadEvents() {
   const container = document.querySelector('#events-container');
   if (!container) return;
@@ -81,21 +103,14 @@ async function loadEvents() {
     }
 
     container.innerHTML = eventos.map((ev) => {
-      let dia = '—';
-      let mes = 'PRÓX';
-      if (ev.fecha && /^\d{4}-\d{2}-\d{2}$/.test(ev.fecha)) {
-        const partes = ev.fecha.split('-');
-        dia = partes[2];
-        const mIdx = parseInt(partes[1], 10) - 1;
-        mes = MESES[mIdx] || 'MES';
-      }
+      const infoFecha = formatFechaEvento(ev.fecha);
       const horario = ev.horario ? ev.horario.slice(0, 5) : '';
 
       return `
         <article class="event-item">
           <div class="news-calendar">
-            <span>${mes}</span>
-            <strong>${dia}</strong>
+            <span>${infoFecha.mes}</span>
+            <strong>${infoFecha.dia}</strong>
             <small>${horario ? `${horario} HS` : 'A CONFIRMAR'}</small>
           </div>
           <div class="event-info">
@@ -103,8 +118,9 @@ async function loadEvents() {
             <h3>${escapeHtml(ev.nombre)}</h3>
             <p>${escapeHtml(ev.descripcion)}</p>
             <div class="event-meta">
-              ${ev.lugar ? `<span>📍 <strong>Lugar:</strong> ${escapeHtml(ev.lugar)}</span>` : ''}
+              <span>📅 <strong>Fecha del evento:</strong> ${infoFecha.texto}</span>
               ${horario ? `<span>🕒 <strong>Horario:</strong> ${horario} hs</span>` : ''}
+              ${ev.lugar ? `<span>📍 <strong>Lugar:</strong> ${escapeHtml(ev.lugar)}</span>` : ''}
             </div>
           </div>
           <span class="news-spark" aria-hidden="true">✳</span>
@@ -203,9 +219,9 @@ const forms = {
   event: {
     tag: 'EVENTOS VECINALES',
     title: 'Compartí tu evento.',
-    copy: 'Compartí una actividad comunitaria, festejo o taller con los vecinos del barrio.',
-    notice: 'El evento se guardará y publicará en la agenda de Novedades del barrio para que toda la comunidad pueda sumarse.',
-    submit: 'Publicar evento <span>↗</span>',
+    copy: 'Proponé una actividad, festejo o encuentro comunitario para los vecinos del barrio.',
+    notice: 'Tu propuesta será enviada a la Junta Vecinal y, una vez aprobada, aparecerá publicada en Novedades del barrio con la fecha y hora indicadas.',
+    submit: 'Enviar propuesta de evento <span>↗</span>',
     fields: [['Nombre del evento', 'text', 'event-name'], ['Descripción', 'textarea', 'description'], ['Fecha', 'date', 'event-date'], ['Horario', 'time', 'event-time'], ['Lugar', 'text', 'place']],
   },
 };
@@ -266,7 +282,7 @@ document.querySelector('#demo-form').addEventListener('submit', async (event) =>
   }
 
   if (tag === 'EVENTOS VECINALES') {
-    formPreview.textContent = 'Publicando evento en Novedades del barrio…';
+    formPreview.textContent = 'Enviando propuesta de evento a la Junta Vecinal…';
     try {
       const payload = {
         'event-name': values.get('event-name'),
@@ -286,10 +302,10 @@ document.querySelector('#demo-form').addEventListener('submit', async (event) =>
 
       if (res.ok && data.ok) {
         form.reset();
-        formPreview.textContent = '¡Tu evento fue publicado con éxito en Novedades del barrio!';
+        formPreview.textContent = data.mensaje || '¡Tu propuesta de evento fue enviada con éxito! Aparecerá en Novedades del barrio una vez aprobada por la Junta Vecinal.';
         loadEvents();
       } else {
-        formPreview.textContent = data.error || 'No pudimos publicar el evento. Revisá los campos e intentá más tarde.';
+        formPreview.textContent = data.error || 'No pudimos enviar la propuesta. Revisá los campos e intentá más tarde.';
       }
     } catch (err) {
       formPreview.textContent = 'No pudimos conectar con el servidor. Revisá tu conexión e intentá de nuevo.';

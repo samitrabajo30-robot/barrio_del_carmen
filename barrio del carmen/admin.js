@@ -238,7 +238,7 @@ function renderAdminEvents(eventos) {
   if (!eventos.length) {
     const tr = tbody.insertRow();
     const td = tr.insertCell();
-    td.colSpan = 6;
+    td.colSpan = 7;
     td.className = 'empty-row';
     td.textContent = 'No hay eventos cargados aún.';
     return;
@@ -246,23 +246,86 @@ function renderAdminEvents(eventos) {
 
   for (const ev of eventos) {
     const tr = tbody.insertRow();
-    [ev.fecha, ev.horario ? ev.horario.slice(0, 5) : '-', ev.nombre, ev.lugar, ev.descripcion].forEach((txt) => {
-      tr.insertCell().textContent = txt || '-';
+    const horario = ev.horario ? `${ev.horario.slice(0, 5)} hs` : '-';
+
+    // Fecha en formato dd/mm/aaaa
+    let fechaTexto = ev.fecha || '-';
+    if (/^\d{4}-\d{2}-\d{2}$/.test(ev.fecha)) {
+      const [a, m, d] = ev.fecha.split('-');
+      fechaTexto = `${d}/${m}/${a}`;
+    }
+
+    [fechaTexto, horario, ev.nombre, ev.lugar, ev.descripcion].forEach((txt, idx) => {
+      const cell = tr.insertCell();
+      if (idx === 2) cell.style.fontWeight = 'bold';
+      cell.textContent = txt || '-';
     });
 
+    // Columna Estado en la Web
+    const statusCell = tr.insertCell();
+    const esAprobado = ev.estado === 'aprobado' || ev.estado === 'publicado';
+    const esDesaprobado = ev.estado === 'desaprobado';
+
+    let badgeHtml = '';
+    if (esAprobado) {
+      badgeHtml = '<span style="display:inline-block; padding: 4px 8px; border-radius: 4px; background: #e8f5e9; color: #1b5e20; font-weight: 700; font-size: 11px;">🟢 Aprobado (Visible)</span>';
+    } else if (esDesaprobado) {
+      badgeHtml = '<span style="display:inline-block; padding: 4px 8px; border-radius: 4px; background: #ffebee; color: #b71c1c; font-weight: 700; font-size: 11px;">🔴 Desaprobado (Oculto)</span>';
+    } else {
+      badgeHtml = '<span style="display:inline-block; padding: 4px 8px; border-radius: 4px; background: #fff8e1; color: #f57f17; font-weight: 700; font-size: 11px;">🟡 Pendiente de revisión</span>';
+    }
+    statusCell.innerHTML = badgeHtml;
+
+    // Columna de Moderación (Aprobar / Desaprobar)
     const actionsCell = tr.insertCell();
+    actionsCell.style.display = 'flex';
+    actionsCell.style.gap = '8px';
+    actionsCell.style.alignItems = 'center';
+
+    // Botón Aprobar
+    const btnAprobar = document.createElement('button');
+    btnAprobar.type = 'button';
+    btnAprobar.textContent = esAprobado ? '✓ Aprobado' : 'Aprobar';
+    btnAprobar.style.cssText = esAprobado
+      ? 'background: #2e7d32; color: white; border: 1px solid #1b5e20; padding: 7px 12px; border-radius: 3px; font-weight: bold; font-size: 11px; cursor: default; opacity: 0.9;'
+      : 'background: #e8f5e9; color: #1b5e20; border: 1px solid #81c784; padding: 7px 12px; border-radius: 3px; font-weight: bold; font-size: 11px; cursor: pointer;';
+    btnAprobar.title = 'Aprobar para publicar este evento en la página principal';
+
+    btnAprobar.addEventListener('click', async () => {
+      if (esAprobado) return;
+      await cambiarEstadoEvento(ev.id, 'aprobado', ev.nombre);
+    });
+
+    // Botón Desaprobar
+    const btnDesaprobar = document.createElement('button');
+    btnDesaprobar.type = 'button';
+    btnDesaprobar.textContent = esDesaprobado ? '✕ Desaprobado' : 'Desaprobar';
+    btnDesaprobar.style.cssText = esDesaprobado
+      ? 'background: #c62828; color: white; border: 1px solid #b71c1c; padding: 7px 12px; border-radius: 3px; font-weight: bold; font-size: 11px; cursor: default; opacity: 0.9;'
+      : 'background: #ffebee; color: #b71c1c; border: 1px solid #e57373; padding: 7px 12px; border-radius: 3px; font-weight: bold; font-size: 11px; cursor: pointer;';
+    btnDesaprobar.title = 'Desaprobar y ocultar este evento de la página principal';
+
+    btnDesaprobar.addEventListener('click', async () => {
+      if (esDesaprobado) return;
+      await cambiarEstadoEvento(ev.id, 'desaprobado', ev.nombre);
+    });
+
+    // Botón Eliminar permanente (discreto)
     const btnEliminar = document.createElement('button');
+    btnEliminar.type = 'button';
     btnEliminar.className = 'quiet-button';
-    btnEliminar.textContent = '✕ Eliminar';
-    btnEliminar.style.color = '#a23f32';
+    btnEliminar.textContent = '🗑';
+    btnEliminar.title = 'Eliminar evento definitivamente';
+    btnEliminar.style.padding = '6px 8px';
     btnEliminar.addEventListener('click', async () => {
-      if (!confirm(`¿Eliminar el evento "${ev.nombre}"?`)) return;
+      if (!confirm(`¿Eliminar definitivamente el evento "${ev.nombre}"?`)) return;
       try {
         const res = await fetch(`/api/admin/eventos/${ev.id}`, {
           method: 'DELETE',
           credentials: 'include'
         });
         if (res.ok) {
+          el('#events-message').textContent = `Evento "${ev.nombre}" eliminado.`;
           loadAdminEvents();
         } else {
           alert('No se pudo eliminar el evento.');
@@ -271,7 +334,36 @@ function renderAdminEvents(eventos) {
         alert('Error de conexión.');
       }
     });
-    actionsCell.append(btnEliminar);
+
+    actionsCell.append(btnAprobar, btnDesaprobar, btnEliminar);
+  }
+}
+
+async function cambiarEstadoEvento(id, nuevoEstado, nombreEvento) {
+  const msg = el('#events-message');
+  msg.textContent = 'Actualizando estado del evento…';
+
+  try {
+    const res = await fetch(`/api/admin/eventos/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ estado: nuevoEstado })
+    });
+    const data = await res.json();
+
+    if (res.ok && data.ok) {
+      if (nuevoEstado === 'aprobado') {
+        msg.textContent = `✓ Evento "${nombreEvento}" APROBADO: Ya está publicado y visible en Novedades del barrio con su fecha y hora.`;
+      } else {
+        msg.textContent = `✕ Evento "${nombreEvento}" DESAPROBADO: Se ocultó de la página principal.`;
+      }
+      loadAdminEvents();
+    } else {
+      msg.textContent = data.error || 'No se pudo actualizar el estado del evento.';
+    }
+  } catch (err) {
+    msg.textContent = 'Error al comunicarse con el servidor.';
   }
 }
 

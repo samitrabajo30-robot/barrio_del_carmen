@@ -74,7 +74,7 @@ CREATE TABLE IF NOT EXISTS eventos (
     fecha TEXT NOT NULL,
     horario TEXT NOT NULL,
     lugar TEXT NOT NULL,
-    estado TEXT NOT NULL DEFAULT 'publicado',
+    estado TEXT NOT NULL DEFAULT 'pendiente',
     creado_en TEXT NOT NULL DEFAULT (datetime('now', 'utc'))
 );
 

@@ -203,11 +203,11 @@ def actualizar_estado_reclamo(reclamo_id: int):
 
 @bp.get('/eventos')
 def obtener_eventos():
-    """Devuelve los eventos publicados ordenados cronológicamente."""
+    """Devuelve los eventos aprobados ordenados cronológicamente."""
     filas = db.query(
-        """SELECT id, nombre, descripcion, fecha, horario, lugar, creado_en
+        """SELECT id, nombre, descripcion, fecha, horario, lugar, estado, creado_en
            FROM eventos
-           WHERE estado = 'publicado'
+           WHERE estado IN ('aprobado', 'publicado')
            ORDER BY fecha ASC, horario ASC
            LIMIT 100"""
     )
@@ -216,7 +216,7 @@ def obtener_eventos():
 
 @bp.post('/eventos')
 def crear_evento_publico():
-    """Permite a los vecinos compartir un evento desde la página principal."""
+    """Permite a los vecinos proponer un evento que quedará pendiente de aprobación."""
     datos = request.get_json(silent=True) or {}
 
     if datos.get('website'):
@@ -239,11 +239,15 @@ def crear_evento_publico():
 
     new_id, _ = db.execute(
         """INSERT INTO eventos (nombre, descripcion, fecha, horario, lugar, estado)
-           VALUES (?, ?, ?, ?, ?, 'publicado')""",
+           VALUES (?, ?, ?, ?, ?, 'pendiente')""",
         [nombre, descripcion, fecha, horario, lugar]
     )
 
-    return jsonify(ok=True, id=new_id, mensaje="¡Tu evento fue publicado con éxito en Novedades del barrio!")
+    return jsonify(
+        ok=True,
+        id=new_id,
+        mensaje="¡Tu propuesta de evento fue enviada con éxito! La Junta Vecinal la revisará y la publicará en Novedades del barrio."
+    )
 
 
 @bp.get('/admin/eventos')
@@ -261,7 +265,7 @@ def listar_eventos_admin():
 @bp.post('/admin/eventos')
 @sesiones.requiere_sesion
 def crear_evento_admin():
-    """Crea un evento oficial desde el panel de administración."""
+    """Crea un evento oficial desde el panel de administración (aprobado por defecto)."""
     datos = request.get_json(silent=True) or {}
     nombre = (datos.get('nombre') or '').strip()
     descripcion = (datos.get('descripcion') or '').strip()
@@ -274,7 +278,7 @@ def crear_evento_admin():
 
     new_id, _ = db.execute(
         """INSERT INTO eventos (nombre, descripcion, fecha, horario, lugar, estado)
-           VALUES (?, ?, ?, ?, ?, 'publicado')""",
+           VALUES (?, ?, ?, ?, ?, 'aprobado')""",
         [nombre, descripcion, fecha, horario, lugar]
     )
 
@@ -290,10 +294,34 @@ def crear_evento_admin():
     return jsonify(ok=True, id=new_id)
 
 
+@bp.patch('/admin/eventos/<int:evento_id>')
+@sesiones.requiere_sesion
+def actualizar_estado_evento(evento_id: int):
+    """Permite al administrador aprobar o desaprobar un evento con un solo clic."""
+    datos = request.get_json(silent=True) or {}
+    nuevo_estado = (datos.get('estado') or '').strip().lower()
+
+    if nuevo_estado not in ('aprobado', 'desaprobado', 'pendiente', 'publicado'):
+        return jsonify(error="Estado no válido. Use 'aprobado' o 'desaprobado'."), 400
+
+    db.execute("UPDATE eventos SET estado = ? WHERE id = ?", [nuevo_estado, evento_id])
+
+    yo = sesiones.usuario_actual()
+    auditoria.registrar_accion(
+        accion='MODERAR_EVENTO',
+        entidad='eventos',
+        entidad_id=str(evento_id),
+        detalle=f"Cambió el estado del evento ID {evento_id} a '{nuevo_estado}'",
+        operador=yo
+    )
+
+    return jsonify(ok=True, estado=nuevo_estado)
+
+
 @bp.delete('/admin/eventos/<int:evento_id>')
 @sesiones.requiere_sesion
 def eliminar_evento(evento_id: int):
-    """Elimina un evento."""
+    """Elimina un evento definitivamente."""
     db.execute("DELETE FROM eventos WHERE id = ?", [evento_id])
 
     yo = sesiones.usuario_actual()

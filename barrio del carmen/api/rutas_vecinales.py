@@ -17,11 +17,26 @@ YOUTUBE_REGEX = re.compile(r'(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?
 
 
 def es_url_segura(url: str) -> bool:
-    """Verifica que la URL use HTTPS o HTTP y no protocolos peligrosos (javascript:, data:)."""
+    """Verifica que la URL use HTTPS o HTTP y no protocolos peligrosos (javascript:, etc.)."""
     if not url:
         return True
     url_limpia = url.strip().lower()
     return url_limpia.startswith('https://') or url_limpia.startswith('http://')
+
+
+def es_imagen_segura(img_val: str) -> bool:
+    """Permite URLs seguras (HTTPS/HTTP) o imágenes Data URI en formatos estándar (PNG, JPG, WEBP)."""
+    if not img_val:
+        return True
+    limpia = img_val.strip().lower()
+    if limpia.startswith('https://') or limpia.startswith('http://'):
+        return True
+    if (limpia.startswith('data:image/png;base64,') or
+        limpia.startswith('data:image/jpeg;base64,') or
+        limpia.startswith('data:image/jpg;base64,') or
+        limpia.startswith('data:image/webp;base64,')):
+        return True
+    return False
 
 
 # =============================================================================
@@ -48,8 +63,8 @@ def actualizar_contenido():
 
     if 'hero_image' in datos:
         hero_img = str(datos['hero_image']).strip()
-        if hero_img and not es_url_segura(hero_img):
-            return jsonify(error="La URL de la imagen debe comenzar con https://"), 400
+        if hero_img and not es_imagen_segura(hero_img):
+            return jsonify(error="El formato de imagen no es válido. Debe ser PNG, JPG o una URL https://"), 400
 
     if 'video_url' in datos:
         vid_url = str(datos['video_url']).strip()
@@ -60,8 +75,9 @@ def actualizar_contenido():
     for clave in claves_permitidas:
         if clave in datos:
             valor = str(datos[clave]).strip()
-            if len(valor) > 3000:
-                return jsonify(error=f"El campo '{clave}' excede el límite máximo de caracteres."), 400
+            limite = 3_000_000 if clave == 'hero_image' else 3000
+            if len(valor) > limite:
+                return jsonify(error=f"El campo '{clave}' excede el límite máximo de tamaño."), 400
 
             db.execute(
                 """INSERT INTO contenido_sitio (clave, valor, actualizado_en)

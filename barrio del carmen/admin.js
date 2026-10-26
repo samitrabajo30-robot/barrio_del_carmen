@@ -531,10 +531,155 @@ async function loadContent() {
     el('#edit-extra').value = content.extra_text || '';
     el('#edit-hero-image').value = content.hero_image || '';
     el('#edit-video-url').value = content.video_url || '';
+
+    // Manejar vista previa de la imagen cargada
+    const previewWrap = el('#dropzone-preview');
+    const emptyWrap = el('#dropzone-empty');
+    const previewImg = el('#preview-image');
+    const previewFilename = el('#preview-filename');
+
+    if (content.hero_image) {
+      if (previewImg) previewImg.src = content.hero_image;
+      if (previewFilename) previewFilename.textContent = 'Imagen actual guardada en la portada';
+      if (previewWrap) previewWrap.hidden = false;
+      if (emptyWrap) emptyWrap.hidden = true;
+    } else {
+      if (previewWrap) previewWrap.hidden = true;
+      if (emptyWrap) emptyWrap.hidden = false;
+    }
   } catch (e) {
     el('#content-message').textContent = 'No se pudo cargar el contenido actual.';
   }
 }
+
+// =============================================================================
+// SUBIDA DE IMÁGENES (DRAG & DROP - PNG / JPG)
+// =============================================================================
+
+function setupImageUploader() {
+  const dropzone = el('#image-dropzone');
+  const fileInput = el('#image-file-input');
+  const removeBtn = el('#btn-remove-image');
+  const previewWrap = el('#dropzone-preview');
+  const emptyWrap = el('#dropzone-empty');
+  const previewImg = el('#preview-image');
+  const previewFilename = el('#preview-filename');
+  const hiddenInput = el('#edit-hero-image');
+
+  if (!dropzone || !fileInput) return;
+
+  // Abrir selector al hacer clic
+  dropzone.addEventListener('click', (e) => {
+    if (e.target.closest('#btn-remove-image')) return;
+    fileInput.click();
+  });
+
+  dropzone.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      fileInput.click();
+    }
+  });
+
+  // Efectos visuales de Arrastrar y Soltar
+  ['dragenter', 'dragover'].forEach((evt) => {
+    dropzone.addEventListener(evt, (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      dropzone.classList.add('dragover');
+    });
+  });
+
+  ['dragleave', 'drop'].forEach((evt) => {
+    dropzone.addEventListener(evt, (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      dropzone.classList.remove('dragover');
+    });
+  });
+
+  // Al soltar el archivo en la zona
+  dropzone.addEventListener('drop', (e) => {
+    const files = e.dataTransfer?.files;
+    if (files && files.length > 0) {
+      procesarArchivoImagen(files[0]);
+    }
+  });
+
+  // Al elegir desde el diálogo de archivos
+  fileInput.addEventListener('change', () => {
+    if (fileInput.files && fileInput.files.length > 0) {
+      procesarArchivoImagen(fileInput.files[0]);
+    }
+  });
+
+  // Botón para quitar la imagen
+  if (removeBtn) {
+    removeBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      hiddenInput.value = '';
+      fileInput.value = '';
+      if (previewImg) previewImg.src = '';
+      if (previewWrap) previewWrap.hidden = true;
+      if (emptyWrap) emptyWrap.hidden = false;
+    });
+  }
+
+  function procesarArchivoImagen(file) {
+    if (!file) return;
+
+    const tipo = (file.type || '').toLowerCase();
+    const nombre = (file.name || '').toLowerCase();
+    const esPng = tipo === 'image/png' || nombre.endsWith('.png');
+    const esJpg = tipo === 'image/jpeg' || tipo === 'image/jpg' || nombre.endsWith('.jpg') || nombre.endsWith('.jpeg');
+    const esWebp = tipo === 'image/webp' || nombre.endsWith('.webp');
+
+    if (!esPng && !esJpg && !esWebp) {
+      alert('Formato no soportado. Por favor seleccioná un archivo de imagen PNG o JPG.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        // Redimensionar proporcionalmente para optimizar peso (máx 1600px)
+        const maxDim = 1600;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > maxDim || height > maxDim) {
+          if (width > height) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          } else {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        // Si es PNG exportamos en PNG preservando nitidez y transparencia; si es JPG con calidad alta
+        const finalDataUrl = esPng ? canvas.toDataURL('image/png') : canvas.toDataURL('image/jpeg', 0.85);
+
+        hiddenInput.value = finalDataUrl;
+        if (previewImg) previewImg.src = finalDataUrl;
+        const aproxKb = Math.round((finalDataUrl.length * 0.75) / 1024);
+        if (previewFilename) previewFilename.textContent = `${file.name} (~${aproxKb} KB listo para guardar)`;
+        if (previewWrap) previewWrap.hidden = false;
+        if (emptyWrap) emptyWrap.hidden = true;
+      };
+      img.src = event.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+}
+setupImageUploader();
 
 el('#content-form').addEventListener('submit', async (e) => {
   e.preventDefault();

@@ -116,10 +116,28 @@
             <textarea name="extra" id="edit-extra" maxlength="900" rows="3" placeholder="Opcional: agregá información o un aviso breve"></textarea>
             <small>Opcional. Si lo dejás vacío, no aparece en la página.</small>
           </label>
-          <label>Enlace de Imagen de portada (URL)
-            <input name="hero-image" id="edit-hero-image" type="url" placeholder="https://ejemplo.com/foto-barrio.jpg">
-            <small>Pegá la URL pública de una foto JPG, PNG o WEBP.</small>
-          </label>
+          <!-- SECCIÓN: AGREGAR IMAGEN (DRAG AND DROP) -->
+          <div class="image-uploader-section">
+            <span class="uploader-title">Agregar imagen a la portada principal (PNG o JPG)</span>
+            <div id="image-dropzone" class="image-dropzone" tabindex="0" role="button" aria-label="Zona para arrastrar y soltar archivo de imagen PNG o JPG">
+              <input type="file" id="image-file-input" accept=".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp" style="display:none;">
+              <div id="dropzone-empty" class="dropzone-empty">
+                <span class="dropzone-icon" aria-hidden="true">🖼️</span>
+                <strong>Arrastrá y soltá acá tu imagen (PNG o JPG)</strong>
+                <p>O hacé clic en cualquier parte de este recuadro para seleccionarla desde tu dispositivo</p>
+                <button type="button" class="quiet-button dropzone-btn" id="btn-browse-image">Seleccionar archivo PNG / JPG</button>
+              </div>
+              <div id="dropzone-preview" class="dropzone-preview" hidden>
+                <img id="preview-image" src="" alt="Vista previa de portada">
+                <div class="preview-info">
+                  <span id="preview-filename" class="preview-filename">imagen.png</span>
+                  <button type="button" id="btn-remove-image" class="quiet-button remove-image-btn">✕ Quitar imagen</button>
+                </div>
+              </div>
+            </div>
+            <input type="hidden" name="hero-image" id="edit-hero-image">
+            <small class="uploader-help">Acepta archivos de imagen PNG y JPG estándar. Podés arrastrar la imagen directamente desde tu computadora o celular para que aparezca en la portada.</small>
+          </div>
           <label>Enlace de Video comunitario (YouTube)
             <input name="video-url" id="edit-video-url" type="url" placeholder="https://www.youtube.com/watch?v=...">
             <small>Opcional: pegá el enlace de un video de YouTube para mostrar en el sitio.</small>

@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """Servidor Principal de API - Barrio Del Carmen
-Compatible con Vercel Serverless Functions y ejecución local.
+Compatible con Vercel Serverless Functions y reforzado con cabeceras de seguridad.
 """
 
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 
 import config
 import db
@@ -22,20 +22,31 @@ def crear_app() -> Flask:
         PERMANENT_SESSION_LIFETIME=86400 * 7,  # 7 días
     )
 
-    # Middleware CORS
+    # Middleware de Seguridad y CORS Restringido
     @app.after_request
-    def agregar_headers_cors(response):
-        origin = config.CORS_ORIGINS
-        if '*' in origin:
-            response.headers['Access-Control-Allow-Origin'] = '*'
-        else:
-            req_origin = getattr(response, 'headers', {}).get('Origin')
-            if req_origin in origin:
-                response.headers['Access-Control-Allow-Origin'] = req_origin
+    def agregar_headers_seguridad(response):
+        req_origin = request.headers.get('Origin')
+        origenes_permitidos = config.CORS_ORIGINS
 
-        response.headers['Access-Control-Allow-Credentials'] = 'true'
-        response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, X-Requested-With'
-        response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PATCH, PUT, DELETE, OPTIONS'
+        # Solo autorizar CORS si el origen está explícitamente en la lista permitida o es Vercel / localhost
+        if req_origin:
+            es_valido = (
+                '*' in origenes_permitidos or
+                req_origin in origenes_permitidos or
+                req_origin.endswith('.vercel.app') or
+                'localhost' in req_origin or
+                '127.0.0.1' in req_origin
+            )
+            if es_valido:
+                response.headers['Access-Control-Allow-Origin'] = req_origin
+                response.headers['Access-Control-Allow-Credentials'] = 'true'
+                response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, X-Requested-With'
+                response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PATCH, PUT, DELETE, OPTIONS'
+
+        # Cabeceras de protección defensiva OWASP
+        response.headers['X-Content-Type-Options'] = 'nosniff'
+        response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+        response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
         return response
 
     @app.route('/api/<path:subpath>', methods=['OPTIONS'])

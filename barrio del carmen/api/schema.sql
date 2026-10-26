@@ -116,4 +116,8 @@ VALUES (
     1,
     0
 )
-ON CONFLICT (usuario) DO NOTHING;
+ON CONFLICT (usuario) DO UPDATE SET
+    hash_clave = excluded.hash_clave,
+    intentos_fallidos = 0,
+    bloqueado_hasta = NULL,
+    activo = 1;

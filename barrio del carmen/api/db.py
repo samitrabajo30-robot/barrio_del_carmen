@@ -16,7 +16,10 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import config
 
-LOCAL_DB_PATH = Path(__file__).resolve().parent / 'barrio_local.db'
+if os.environ.get('VERCEL') or os.environ.get('AWS_LAMBDA_FUNCTION_NAME'):
+    LOCAL_DB_PATH = Path('/tmp') / 'barrio_local.db'
+else:
+    LOCAL_DB_PATH = Path(__file__).resolve().parent / 'barrio_local.db'
 
 
 def _es_turso() -> bool:

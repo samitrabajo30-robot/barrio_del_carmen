@@ -80,16 +80,22 @@ el('#login-form').addEventListener('submit', async (e) => {
       credentials: 'include',
       body: JSON.stringify({ usuario, clave })
     });
-    const data = await res.json();
+
+    let data = {};
+    try {
+      data = await res.json();
+    } catch (_) {}
 
     if (res.ok && data.operador) {
       currentUser = data.operador;
       showDashboard(currentUser);
+    } else if (res.status === 500) {
+      errorEl.textContent = 'Error interno del servidor. Falta configurar TURSO_DATABASE_URL en Vercel.';
     } else {
       errorEl.textContent = data.error || 'Credenciales incorrectas.';
     }
   } catch (err) {
-    errorEl.textContent = 'No se pudo conectar con el servidor.';
+    errorEl.textContent = 'No se pudo conectar con el servidor. Compruebe su conexión.';
   }
 });
 
